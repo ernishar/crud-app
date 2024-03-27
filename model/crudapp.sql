@@ -57,3 +57,49 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+
+
+CREATE TABLE Department (
+    departmentId INT PRIMARY KEY,
+    departmentName VARCHAR(255)
+);
+
+CREATE TABLE User (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    firstName VARCHAR(255),
+    lastName VARCHAR(255),
+    email VARCHAR(255),
+    password VARCHAR(255),
+    gender VARCHAR(10),
+    hobbies VARCHAR(255),
+    departmentId INT,
+    FOREIGN KEY (departmentId) REFERENCES Department(departmentId)
+);
+
+-- Insert dummy data into Department table
+INSERT INTO Department (departmentId, departmentName) VALUES
+(1, 'Sales'),
+(2, 'Marketing'),
+(3, 'Human Resources'),
+(4, 'Finance'),
+(5, 'IT');
+
+-- Insert dummy data into User table
+INSERT INTO User (firstName, lastName, email, password, gender, hobbies, departmentId) VALUES
+('John', 'Doe', 'john.doe@example.com', 'password1', 'Male', 'Reading, Swimming', 1),
+('Jane', 'Smith', 'jane.smith@example.com', 'password2', 'Female', 'Cooking, Hiking', 2),
+('Michael', 'Johnson', 'michael.johnson@example.com', 'password3', 'Male', 'Gaming, Traveling', 3),
+('Emily', 'Brown', 'emily.brown@example.com', 'password4', 'Female', 'Painting, Yoga', 4),
+('David', 'Martinez', 'david.martinez@example.com', 'password5', 'Male', 'Photography, Cycling', 5),
+('Sarah', 'Anderson', 'sarah.anderson@example.com', 'password6', 'Female', 'Dancing, Skiing', 1),
+('Chris', 'Wilson', 'chris.wilson@example.com', 'password7', 'Male', 'Playing guitar, Running', 2),
+('Jessica', 'Taylor', 'jessica.taylor@example.com', 'password8', 'Female', 'Watching movies, Cooking', 3),
+('Daniel', 'Thomas', 'daniel.thomas@example.com', 'password9', 'Male', 'Reading, Playing football', 4),
+('Amy', 'Roberts', 'amy.roberts@example.com', 'password10', 'Female', 'Writing, Shopping', 5);
+
+
+SELECT User.id, User.firstName, User.lastName, User.email, User.password, User.gender, User.hobbies, Department.departmentId, Department.departmentName
+FROM User
+INNER JOIN Department ON User.departmentId = Department.departmentId;

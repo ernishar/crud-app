@@ -6,7 +6,6 @@ const {
     loginUser,
     fetchAllData,
     fetchDataById,
-    insertUserData,
     updateUserData,
     deleteUserData,
 } = require('../controller/userController');
@@ -19,7 +18,6 @@ router
     .post('/login', loginUser)
     .get('/all', fetchAllData)
     .get('/:id', fetchDataById)
-    .post('/insert', insertUserData)
     .put('/update', isAuthenticated, updateUserData)
     .delete('/delete', isAuthenticated, deleteUserData)
 

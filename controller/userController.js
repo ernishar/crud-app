@@ -1,22 +1,32 @@
 const sequelize = require('../model/index');
 const { QueryTypes } = require('sequelize');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+// Function to generate JWT token
+function generateToken(userId) {
+    return jwt.sign({ userId }, 'your_secret_key', { expiresIn: '1h' }); // Change 'your_secret_key' to your actual secret key
+}
 
 exports.isAuthenticated = (req, res, next) => {
-    if (req.session && req.session.userId) {
-        next();
-    } else {
-        res.status(401).json({ error: 'Unauthorized' });
+    const token = req.headers.authorization;
+    if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
     }
+    jwt.verify(token, 'your_secret_key', (err, decoded) => { // Change 'your_secret_key' to your actual secret key
+        if (err) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        req.userId = decoded.userId;
+        next();
+    });
 };
-
-
 
 exports.registerUser = async (req, res) => {
     const { firstName, lastName, email, password, gender, hobbies, departmentId } = req.body;
 
     try {
-        if (!name || !email || !password) {
+        if (!firstName || !lastName || !email || !password || !gender || !hobbies || !departmentId) {
             return res.status(422).json({ error: "Fill in all fields." });
         }
 
@@ -36,7 +46,6 @@ exports.registerUser = async (req, res) => {
         if (password.trim().length < 8) {
             return res.status(422).json({ error: "Password should be at least 8 characters." });
         }
-
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -83,7 +92,8 @@ exports.loginUser = async (req, res) => {
             return res.status(401).json({ error: 'Incorrect password.' });
         }
 
-        res.json({ message: 'Login successful', user });
+        const token = generateToken(user.id); // Assuming user.id is the user's unique identifier
+        res.json({ message: 'Login successful', token });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -130,24 +140,6 @@ exports.fetchDataById = async (req, res) => {
     }
 };
 
-exports.insertUserData = async (req, res) => {
-    const { firstName, lastName, email, password, gender, hobbies, departmentId } = req.body;
-
-    try {
-        const result = await sequelize.query(`
-            INSERT INTO User (firstName, lastName, email, password, gender, hobbies, departmentId)
-            VALUES (:firstName, :lastName, :email, :password, :gender, :hobbies, :departmentId)
-        `, {
-            replacements: { firstName, lastName, email, password, gender, hobbies, departmentId },
-            type: QueryTypes.INSERT
-        });
-
-        res.json({ message: 'User data inserted successfully', insertedId: result[0] });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-};
 
 exports.updateUserData = async (req, res) => {
     const { userId, firstName, lastName, email, password, gender, hobbies, departmentId } = req.body;

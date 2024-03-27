@@ -7,7 +7,7 @@ const port = 5000;
 
 
 app.use(express.json())
-// app.use(customMiddleware)
+
 app.use('/api',userController.router)
 
 

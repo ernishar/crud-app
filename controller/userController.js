@@ -8,24 +8,26 @@ function generateToken(userId) {
     return jwt.sign({ userId }, 'your_secret_key', { expiresIn: '1h' }); // Change 'your_secret_key' to your actual secret key
 }
 
-exports.isAuthenticated = (req, res, next) => {
-    const token = req.headers.authorization;
-    if (!token) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-    jwt.verify(token, 'your_secret_key', (err, decoded) => { // Change 'your_secret_key' to your actual secret key
-        if (err) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-        req.userId = decoded.userId;
-        next();
-    });
-};
+// exports.isAuthenticated = (req, res, next) => {
+//     const token = req.headers.authorization;
+//     if (!token) {
+//         return res.status(401).json({ error: 'Unauthorized' });
+//     }
+//     jwt.verify(token, 'your_secret_key', (err, decoded) => { // Change 'your_secret_key' to your actual secret key
+//         if (err) {
+//             return res.status(401).json({ error: 'Unauthorized' });
+//         }
+//         req.userId = decoded.userId;
+//         next();
+//     });
+// };
 
 exports.registerUser = async (req, res) => {
-    const { firstName, lastName, email, password, gender, hobbies, departmentId } = req.body;
+    const {id, firstName, lastName, email, password, gender, hobbies, departmentId } = req.body;
+    
 
     try {
+        console.log(req.body);
         if (!firstName || !lastName || !email || !password || !gender || !hobbies || !departmentId) {
             return res.status(422).json({ error: "Fill in all fields." });
         }
@@ -49,11 +51,27 @@ exports.registerUser = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const insertUserQuery = `
-            INSERT INTO User (firstName, lastName, email, password, gender, hobbies, departmentId) VALUES (:firstName, :lastName, :email, :password, :gender, :hobbies, :departmentId)
-        `;
+        const insertUserQuery = `INSERT INTO User (
+            id,
+            firstName,
+            lastName,
+            email,
+            password,
+            gender,
+            hobbies,
+            departmentId
+          ) VALUES (
+            ${id}, 
+            '${firstName}',
+            '${lastName}',
+            '${email}',
+            '${hashedPassword}',
+            '${gender}',
+            '${hobbies}',
+            ${departmentId}
+          )`;
         await sequelize.query(insertUserQuery, {
-            replacements: { firstName, lastName, email: newEmail, password: hashedPassword, gender, hobbies, departmentId },
+            replacements: { id,firstName, lastName, email: newEmail, password: hashedPassword, gender, hobbies, departmentId },
             type: QueryTypes.INSERT
         });
 
@@ -105,7 +123,7 @@ exports.fetchAllData = async (req, res) => {
         const empData = await sequelize.query(`
             SELECT User.id, User.firstName, User.lastName, User.email, User.gender, User.hobbies, Department.departmentId, Department.departmentName
             FROM User
-            INNER JOIN Department ON User.departmentId = Department.departmentId;
+            INNER JOIN Department ON User.departmentId = Department.departmentId where deletedAt = false;
         `, { type: QueryTypes.SELECT });
 
         res.json(empData);
@@ -123,7 +141,7 @@ exports.fetchDataById = async (req, res) => {
             SELECT User.id, User.firstName, User.lastName, User.email, User.gender, User.hobbies, Department.departmentId, Department.departmentName
             FROM User
             INNER JOIN Department ON User.departmentId = Department.departmentId
-            WHERE User.id = :userId;
+            WHERE User.id = :userId AND deletedAt = false;
         `, {
             replacements: { userId },
             type: QueryTypes.SELECT
@@ -141,16 +159,25 @@ exports.fetchDataById = async (req, res) => {
 };
 
 
+
 exports.updateUserData = async (req, res) => {
-    const { userId, firstName, lastName, email, password, gender, hobbies, departmentId } = req.body;
+    const { id, firstName, lastName, email, password, gender, hobbies, departmentId } = req.body;
 
     try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const result = await sequelize.query(`
-            UPDATE User 
-            SET firstName = :firstName, lastName = :lastName, email = :email, password = :password, gender = :gender, hobbies = :hobbies, departmentId = :departmentId
-            WHERE id = :userId
+            UPDATE User SET 
+            firstName = :firstName,
+            lastName = :lastName,
+            email = :email,
+            password = :hashedPassword,
+            gender = :gender,
+            hobbies = :hobbies,
+            departmentId = :departmentId
+            WHERE id = :id
         `, {
-            replacements: { userId, firstName, lastName, email, password, gender, hobbies, departmentId },
+            replacements: { id, firstName, lastName, email, hashedPassword, gender, hobbies, departmentId },
             type: QueryTypes.UPDATE
         });
 
@@ -162,17 +189,21 @@ exports.updateUserData = async (req, res) => {
 };
 
 exports.deleteUserData = async (req, res) => {
-    const { userId } = req.body;
+    const id = req.params.id;
 
     try {
         const result = await sequelize.query(`
             UPDATE User
-            SET deletedAt = NOW() -- Assuming 'deletedAt' is the column to mark soft delete
-            WHERE id = :userId
+            SET deletedAt = true 
+            WHERE id = :id
         `, {
-            replacements: { userId },
+            replacements: { id },
             type: QueryTypes.UPDATE
         });
+
+        if (result[1] === 0) { // Check if no rows were affected
+            return res.status(404).json({ error: 'User not found' });
+        }
 
         res.json({ message: 'User data soft deleted successfully' });
     } catch (error) {

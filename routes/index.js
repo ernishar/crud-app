@@ -1,7 +1,6 @@
 
 const express = require('express');
 const {
-    isAuthenticated,
     registerUser,
     loginUser,
     fetchAllData,
@@ -18,7 +17,7 @@ router
     .post('/login', loginUser)
     .get('/all', fetchAllData)
     .get('/:id', fetchDataById)
-    .put('/update', isAuthenticated, updateUserData)
-    .delete('/delete', isAuthenticated, deleteUserData)
+    .put('/update',  updateUserData)
+    .delete('/:id', deleteUserData)
 
 exports.router = router;

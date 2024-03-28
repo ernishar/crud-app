@@ -1,7 +1,6 @@
 
 const express = require('express');
 const {
-    isAuthenticated,
     registerUser,
     loginUser,
     fetchAllData,
@@ -9,16 +8,17 @@ const {
     updateUserData,
     deleteUserData,
 } = require('../controller/userController');
+const auth = require('../middleware/auth')
 
 const router = express.Router();
 
 // Routes
 router
     .post('/register', registerUser)
-    .post('/login', loginUser)
-    .get('/all', fetchAllData)
-    .get('/:id', fetchDataById)
-    .put('/update',isAuthenticated,updateUserData)
-    .delete('/:id', isAuthenticated,deleteUserData)
+    .post('/login', loginUser) 
+    .get('/all',auth, fetchAllData)
+    .get('/:id',auth, fetchDataById)
+    .put('/update',auth,updateUserData)
+    .delete('/:id', auth,deleteUserData)
 
 exports.router = router;

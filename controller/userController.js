@@ -1,12 +1,12 @@
-const sequelize = require('../model/index');
+const sequelize = require('../config/index');
 const { QueryTypes } = require('sequelize');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-const secretKey = "ndasfh";
+require('dotenv').config();
 // Function to generate JWT token
+
 function generateToken(userId) {
-    return jwt.sign({ userId }, secretKey, { expiresIn: '1h' }); // Change 'your_secret_key' to your actual secret key
+    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '1h' }); // Change 'your_secret_key' to your actual secret key
 }
 
 exports.isAuthenticated = (req, res, next) => {

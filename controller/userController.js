@@ -3,24 +3,26 @@ const { QueryTypes } = require('sequelize');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+const secretKey = "ndasfh";
 // Function to generate JWT token
 function generateToken(userId) {
-    return jwt.sign({ userId }, 'your_secret_key', { expiresIn: '1h' }); // Change 'your_secret_key' to your actual secret key
+    return jwt.sign({ userId }, secretKey, { expiresIn: '1h' }); // Change 'your_secret_key' to your actual secret key
 }
 
-// exports.isAuthenticated = (req, res, next) => {
-//     const token = req.headers.authorization;
-//     if (!token) {
-//         return res.status(401).json({ error: 'Unauthorized' });
-//     }
-//     jwt.verify(token, 'your_secret_key', (err, decoded) => { // Change 'your_secret_key' to your actual secret key
-//         if (err) {
-//             return res.status(401).json({ error: 'Unauthorized' });
-//         }
-//         req.userId = decoded.userId;
-//         next();
-//     });
-// };
+exports.isAuthenticated = (req, res, next) => {
+    const token = req.headers.authorization;
+    console.log(token)
+    if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    jwt.verify(token, secretKey, (err, decoded) => { // Change 'your_secret_key' to your actual secret key
+        if (err) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        req.userId = decoded.userId;
+        next();
+    });
+};
 
 exports.registerUser = async (req, res) => {
     const {id, firstName, lastName, email, password, gender, hobbies, departmentId } = req.body;
@@ -110,7 +112,7 @@ exports.loginUser = async (req, res) => {
             return res.status(401).json({ error: 'Incorrect password.' });
         }
 
-        const token = generateToken(user.id); // Assuming user.id is the user's unique identifier
+        const token = generateToken(user.id); 
         res.json({ message: 'Login successful', token });
     } catch (error) {
         console.error('Error:', error);

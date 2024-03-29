@@ -12,9 +12,8 @@ if (!fs.existsSync(absoluteUploadPath)) {
 
 // Set up storage for uploaded files
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public/assets/');
-    },
+    destination: './public/assets/',
+    
     filename: function (req, file, cb) {
         cb(
           null,
@@ -26,7 +25,6 @@ const storage = multer.diskStorage({
 
 // Filter function to accept only certain file types
 const fileFilter = (req, file, cb) => {
-    console.log(file, "line 15")
     if (file) {
         cb(null, true); // Accept the file
     } else {
@@ -35,6 +33,6 @@ const fileFilter = (req, file, cb) => {
 };
 
 // Initialize Multer with options
-const upload = multer({ storage: storage, fileFilter: fileFilter });
+const fileUpload =  multer({ storage: storage, fileFilter: fileFilter }).single("profilePic")
 
-module.exports = upload;
+module.exports = fileUpload;

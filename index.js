@@ -3,11 +3,13 @@ const app = express();
 require('./config/index')
 const userController = require('./routes/index')
 const upload= require('./middleware/fileUpload.js');
+const fileUpload = require('./middleware/fileUpload.js');
 require('dotenv').config();
 const port = 5000;
 
 
-app.post('/upload', upload.single('image'), (req, res) => {
+app.post('/upload', fileUpload, (req, res) => {
+    
     if(!req.file){
         return res.status(400).json({error: 'No file uploaded'});
     }

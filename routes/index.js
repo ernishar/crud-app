@@ -8,13 +8,14 @@ const {
     updateUserData,
     deleteUserData,
 } = require('../controller/userController');
-const auth = require('../middleware/auth')
+const auth = require('../middleware/auth');
+const fileUpload = require('../middleware/fileUpload');
 
 const router = express.Router();
 
 // Routes
 router
-    .post('/register', registerUser)
+    .post('/register', fileUpload,  registerUser)
     .post('/login', loginUser) 
     .get('/all',auth, fetchAllData)
     .get('/:id',auth, fetchDataById)

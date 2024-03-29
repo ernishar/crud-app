@@ -20,10 +20,11 @@ const authenticateUser = async (req, res, next) => {
   try {
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decoded)
 
     // Check if the user exists in the database
     const existingUser = await sequelize.query(
-      `SELECT email FROM User WHERE email = '${decoded.email}'`,
+      `SELECT email FROM User WHERE id = '${decoded.userId}'`,
       { type: QueryTypes.SELECT }
     );
 

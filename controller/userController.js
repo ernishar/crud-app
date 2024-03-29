@@ -3,6 +3,8 @@ const { QueryTypes } = require('sequelize');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+
+const upload = require('../middleware/fileUpload')
 // Function to generate JWT token
 
 function generateToken(userId) {
@@ -25,7 +27,17 @@ exports.isAuthenticated = (req, res, next) => {
 };
 
 exports.registerUser = async (req, res) => {
+    await upload(req, res, async function (err) {
+        if (err) {
+          return res.status(400).json({ error: err });
+        }
+  
+        if (!req.file) {
+          return res.status(400).json({ error: "Error: No File Selected!" });
+        }})
     const {id, firstName, lastName, email, password, gender, hobbies, departmentId } = req.body;
+
+    const profilePic = req.file.filename
     
 
     try {
@@ -61,7 +73,9 @@ exports.registerUser = async (req, res) => {
             password,
             gender,
             hobbies,
-            departmentId
+            departmentId,
+            profilePic
+
           ) VALUES (
             ${id}, 
             '${firstName}',
@@ -70,7 +84,8 @@ exports.registerUser = async (req, res) => {
             '${hashedPassword}',
             '${gender}',
             '${hobbies}',
-            ${departmentId}
+            ${departmentId},
+            '${profilePic}'
           )`;
         await sequelize.query(insertUserQuery, {
             replacements: { id,firstName, lastName, email: newEmail, password: hashedPassword, gender, hobbies, departmentId },
